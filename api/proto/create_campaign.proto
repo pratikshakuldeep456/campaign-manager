@@ -1,0 +1,27 @@
+syntax = "proto3";
+package pb;
+
+option go_package = "pratikshakuldeep456/grpc-server/gen/pb;pb";
+
+message Campaign {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string start_time = 4;
+  string end_time = 5;
+  bool active = 6;
+  int32 priority = 7;
+  string condition_json = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+
+message CreateCampaignRequest {
+    Campaign campaign = 1;
+  }
+  
+  message CreateCampaignResponse {
+    string status = 1;
+    string message = 2;
+  }

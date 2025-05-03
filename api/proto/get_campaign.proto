@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "pratikshakuldeep456/grpc-server/gen/pb;pb";
+
+message GetCampaignRequest {
+    string campaign_id = 1;
+  }
+  
+  // Response Message
+message GetCampaignResponse {
+    string campaign_id = 1;
+    string name = 2;
+    double budget = 3;
+    string status = 4;
+  }
