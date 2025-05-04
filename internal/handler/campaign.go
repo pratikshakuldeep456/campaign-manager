@@ -32,24 +32,28 @@ func (h *CampaignHandler) GetCampaign(ctx context.Context, req *pb.GetCampaignRe
 }
 
 func (h *CampaignHandler) CreateCampaign(ctx context.Context, req *pb.CreateCampaignRequest) (*pb.CreateCampaignResponse, error) {
-	if req.Campaign == nil || req.Campaign.Name == "" || req.Campaign.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "ID and Name are required")
+	if len(req.Campaign) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "at least one campaign must be provided")
 	}
 
-	campaign := &model.Campaign{
-		ID:            req.Campaign.Id,
-		Name:          req.Campaign.Name,
-		Description:   req.Campaign.Description,
-		StartTime:     utils.ParseTime(req.Campaign.StartTime),
-		EndTime:       utils.ParseTime(req.Campaign.EndTime),
-		Active:        req.Campaign.Active,
-		Priority:      int(req.Campaign.Priority),
-		ConditionJSON: req.Campaign.ConditionJson,
+	var campaignModels []*model.Campaign
+	for i, c := range req.Campaign {
+		campaign := &model.Campaign{
+			ID:            utils.GenerateUUID(),
+			Name:          c.Name,
+			Description:   c.Description,
+			StartTime:     utils.ParseTime(c.StartTime),
+			EndTime:       utils.ParseTime(c.EndTime),
+			Active:        c.Active,
+			Priority:      int(c.Priority),
+			ConditionJSON: c.ConditionJson,
+		}
+		if err := ValidateStruct(campaign); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "campaign %d validation failed: %v", i+1, err)
+		}
+
+		campaignModels = append(campaignModels, campaign)
 	}
 
-	if err := ValidateStruct(campaign); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
-	}
-
-	return h.Service.CreateCampaign(ctx, req)
+	return h.Service.CreateCampaign(ctx, campaignModels)
 }

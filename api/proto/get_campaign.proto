@@ -5,13 +5,21 @@ package pb;
 option go_package = "pratikshakuldeep456/grpc-server/gen/pb;pb";
 
 message GetCampaignRequest {
-    string campaign_id = 1;
+  string timestamp = 1;
   }
   
-  // Response Message
-message GetCampaignResponse {
+message CampaignData {
     string campaign_id = 1;
     string name = 2;
-    double budget = 3;
-    string status = 4;
+    string description = 3;
+    string start_time = 4;
+    string end_time = 5;
+    int32 priority = 6;
+    string condition_json = 7;
+    string created_at = 8;
+    string updated_at = 9;
+}
+  
+message GetCampaignResponse {
+    repeated CampaignData campaigns = 1;
   }

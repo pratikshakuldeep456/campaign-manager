@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	pb "pratikshakuldeep456/grpc-server/gen/pb"
 	"pratikshakuldeep456/grpc-server/internal/model"
 	"pratikshakuldeep456/grpc-server/internal/store"
@@ -21,58 +22,49 @@ func NewService(store *store.CampaignStore) *Service {
 }
 
 func (s *Service) GetCampaign(ctx context.Context, req *pb.GetCampaignRequest) (*pb.GetCampaignResponse, error) {
-	campaign, err := s.CampaignStore.GetByID(ctx, req.GetCampaignId())
+	ts, err := time.Parse(time.RFC3339, req.Timestamp)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid timestamp format: %v", err)
 	}
 
-	return &pb.GetCampaignResponse{
-		CampaignId: campaign.ID,
-		Name:       campaign.Name,
-		Budget:     float64(campaign.Priority),
-		Status: func() string {
-			if campaign.Active {
-				return "ACTIVE"
-			}
-			return "INACTIVE"
-		}(),
-	}, nil
+	campaigns, err := s.CampaignStore.ListActiveCampaigns(ctx, ts)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to fetch campaigns: %v", err)
+	}
+
+	var pbCampaigns []*pb.CampaignData
+	for _, c := range campaigns {
+		pbCampaigns = append(pbCampaigns, &pb.CampaignData{
+			CampaignId:    c.ID,
+			Name:          c.Name,
+			Description:   c.Description,
+			StartTime:     c.StartTime.Format(time.RFC3339),
+			EndTime:       c.EndTime.Format(time.RFC3339),
+			Priority:      int32(c.Priority),
+			ConditionJson: c.ConditionJSON,
+			CreatedAt:     c.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:     c.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return &pb.GetCampaignResponse{Campaigns: pbCampaigns}, nil
 }
 
-func (s *Service) CreateCampaign(ctx context.Context, req *pb.CreateCampaignRequest) (*pb.CreateCampaignResponse, error) {
-	c := req.Campaign
-	if c == nil {
+func (s *Service) CreateCampaign(ctx context.Context, req []*model.Campaign) (*pb.CreateCampaignResponse, error) {
+	if len(req) == 0 {
 		return &pb.CreateCampaignResponse{
 			Status:  "ERROR",
-			Message: "Campaign data missing",
+			Message: "No campaign data provided",
 		}, nil
 	}
 
-	startTime, err := time.Parse(time.RFC3339, c.StartTime)
+	ids, err := s.CampaignStore.BulkCreate(ctx, req)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid start_time: %v", err)
-	}
-	endTime, err := time.Parse(time.RFC3339, c.EndTime)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Invalid end_time: %v", err)
-	}
-
-	campaign := &model.Campaign{
-		ID:            c.Id,
-		Name:          c.Name,
-		Description:   c.Description,
-		StartTime:     startTime,
-		EndTime:       endTime,
-		Active:        c.Active,
-		Priority:      int(c.Priority),
-		ConditionJSON: c.ConditionJson,
-	}
-	if err := s.CampaignStore.Create(ctx, campaign); err != nil {
-		return nil, status.Errorf(codes.Internal, "Failed to create campaign: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to insert campaigns: %v", err)
 	}
 
 	return &pb.CreateCampaignResponse{
 		Status:  "SUCCESS",
-		Message: "Campaign created successfully",
+		Message: fmt.Sprintf("%d campaigns created", len(ids)),
 	}, nil
 }

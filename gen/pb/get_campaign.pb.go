@@ -23,7 +23,7 @@ const (
 
 type GetCampaignRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CampaignId    string                 `protobuf:"bytes,1,opt,name=campaign_id,json=campaignId,proto3" json:"campaign_id,omitempty"`
+	Timestamp     string                 `protobuf:"bytes,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -58,27 +58,131 @@ func (*GetCampaignRequest) Descriptor() ([]byte, []int) {
 	return file_get_campaign_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetCampaignRequest) GetCampaignId() string {
+func (x *GetCampaignRequest) GetTimestamp() string {
+	if x != nil {
+		return x.Timestamp
+	}
+	return ""
+}
+
+type CampaignData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CampaignId    string                 `protobuf:"bytes,1,opt,name=campaign_id,json=campaignId,proto3" json:"campaign_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	StartTime     string                 `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime       string                 `protobuf:"bytes,5,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	Priority      int32                  `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	ConditionJson string                 `protobuf:"bytes,7,opt,name=condition_json,json=conditionJson,proto3" json:"condition_json,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CampaignData) Reset() {
+	*x = CampaignData{}
+	mi := &file_get_campaign_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CampaignData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CampaignData) ProtoMessage() {}
+
+func (x *CampaignData) ProtoReflect() protoreflect.Message {
+	mi := &file_get_campaign_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CampaignData.ProtoReflect.Descriptor instead.
+func (*CampaignData) Descriptor() ([]byte, []int) {
+	return file_get_campaign_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CampaignData) GetCampaignId() string {
 	if x != nil {
 		return x.CampaignId
 	}
 	return ""
 }
 
-// Response Message
+func (x *CampaignData) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CampaignData) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CampaignData) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *CampaignData) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+func (x *CampaignData) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *CampaignData) GetConditionJson() string {
+	if x != nil {
+		return x.ConditionJson
+	}
+	return ""
+}
+
+func (x *CampaignData) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *CampaignData) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 type GetCampaignResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CampaignId    string                 `protobuf:"bytes,1,opt,name=campaign_id,json=campaignId,proto3" json:"campaign_id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Budget        float64                `protobuf:"fixed64,3,opt,name=budget,proto3" json:"budget,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Campaigns     []*CampaignData        `protobuf:"bytes,1,rep,name=campaigns,proto3" json:"campaigns,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetCampaignResponse) Reset() {
 	*x = GetCampaignResponse{}
-	mi := &file_get_campaign_proto_msgTypes[1]
+	mi := &file_get_campaign_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -90,7 +194,7 @@ func (x *GetCampaignResponse) String() string {
 func (*GetCampaignResponse) ProtoMessage() {}
 
 func (x *GetCampaignResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_get_campaign_proto_msgTypes[1]
+	mi := &file_get_campaign_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -103,51 +207,39 @@ func (x *GetCampaignResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCampaignResponse.ProtoReflect.Descriptor instead.
 func (*GetCampaignResponse) Descriptor() ([]byte, []int) {
-	return file_get_campaign_proto_rawDescGZIP(), []int{1}
+	return file_get_campaign_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetCampaignResponse) GetCampaignId() string {
+func (x *GetCampaignResponse) GetCampaigns() []*CampaignData {
 	if x != nil {
-		return x.CampaignId
+		return x.Campaigns
 	}
-	return ""
-}
-
-func (x *GetCampaignResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *GetCampaignResponse) GetBudget() float64 {
-	if x != nil {
-		return x.Budget
-	}
-	return 0
-}
-
-func (x *GetCampaignResponse) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
+	return nil
 }
 
 var File_get_campaign_proto protoreflect.FileDescriptor
 
 const file_get_campaign_proto_rawDesc = "" +
 	"\n" +
-	"\x12get_campaign.proto\x12\x02pb\"5\n" +
-	"\x12GetCampaignRequest\x12\x1f\n" +
-	"\vcampaign_id\x18\x01 \x01(\tR\n" +
-	"campaignId\"z\n" +
-	"\x13GetCampaignResponse\x12\x1f\n" +
+	"\x12get_campaign.proto\x12\x02pb\"2\n" +
+	"\x12GetCampaignRequest\x12\x1c\n" +
+	"\ttimestamp\x18\x01 \x01(\tR\ttimestamp\"\xa0\x02\n" +
+	"\fCampaignData\x12\x1f\n" +
 	"\vcampaign_id\x18\x01 \x01(\tR\n" +
 	"campaignId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
-	"\x06budget\x18\x03 \x01(\x01R\x06budget\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06statusB+Z)pratikshakuldeep456/grpc-server/gen/pb;pbb\x06proto3"
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\tR\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x05 \x01(\tR\aendTime\x12\x1a\n" +
+	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12%\n" +
+	"\x0econdition_json\x18\a \x01(\tR\rconditionJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\"E\n" +
+	"\x13GetCampaignResponse\x12.\n" +
+	"\tcampaigns\x18\x01 \x03(\v2\x10.pb.CampaignDataR\tcampaignsB+Z)pratikshakuldeep456/grpc-server/gen/pb;pbb\x06proto3"
 
 var (
 	file_get_campaign_proto_rawDescOnce sync.Once
@@ -161,17 +253,19 @@ func file_get_campaign_proto_rawDescGZIP() []byte {
 	return file_get_campaign_proto_rawDescData
 }
 
-var file_get_campaign_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_get_campaign_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_get_campaign_proto_goTypes = []any{
 	(*GetCampaignRequest)(nil),  // 0: pb.GetCampaignRequest
-	(*GetCampaignResponse)(nil), // 1: pb.GetCampaignResponse
+	(*CampaignData)(nil),        // 1: pb.CampaignData
+	(*GetCampaignResponse)(nil), // 2: pb.GetCampaignResponse
 }
 var file_get_campaign_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: pb.GetCampaignResponse.campaigns:type_name -> pb.CampaignData
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_get_campaign_proto_init() }
@@ -185,7 +279,7 @@ func file_get_campaign_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_get_campaign_proto_rawDesc), len(file_get_campaign_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

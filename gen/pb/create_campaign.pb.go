@@ -23,16 +23,13 @@ const (
 
 type Campaign struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	StartTime     string                 `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	EndTime       string                 `protobuf:"bytes,5,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
-	Active        bool                   `protobuf:"varint,6,opt,name=active,proto3" json:"active,omitempty"`
-	Priority      int32                  `protobuf:"varint,7,opt,name=priority,proto3" json:"priority,omitempty"`
-	ConditionJson string                 `protobuf:"bytes,8,opt,name=condition_json,json=conditionJson,proto3" json:"condition_json,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	StartTime     string                 `protobuf:"bytes,3,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	EndTime       string                 `protobuf:"bytes,4,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	Active        bool                   `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
+	Priority      int32                  `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	ConditionJson string                 `protobuf:"bytes,7,opt,name=condition_json,json=conditionJson,proto3" json:"condition_json,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -65,13 +62,6 @@ func (x *Campaign) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Campaign.ProtoReflect.Descriptor instead.
 func (*Campaign) Descriptor() ([]byte, []int) {
 	return file_create_campaign_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *Campaign) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
 }
 
 func (x *Campaign) GetName() string {
@@ -123,23 +113,9 @@ func (x *Campaign) GetConditionJson() string {
 	return ""
 }
 
-func (x *Campaign) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *Campaign) GetUpdatedAt() string {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return ""
-}
-
 type CreateCampaignRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Campaign      *Campaign              `protobuf:"bytes,1,opt,name=campaign,proto3" json:"campaign,omitempty"`
+	Campaign      []*Campaign            `protobuf:"bytes,1,rep,name=campaign,proto3" json:"campaign,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -174,7 +150,7 @@ func (*CreateCampaignRequest) Descriptor() ([]byte, []int) {
 	return file_create_campaign_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateCampaignRequest) GetCampaign() *Campaign {
+func (x *CreateCampaignRequest) GetCampaign() []*Campaign {
 	if x != nil {
 		return x.Campaign
 	}
@@ -237,24 +213,18 @@ var File_create_campaign_proto protoreflect.FileDescriptor
 
 const file_create_campaign_proto_rawDesc = "" +
 	"\n" +
-	"\x15create_campaign.proto\x12\x02pb\"\xa3\x02\n" +
-	"\bCampaign\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1d\n" +
+	"\x15create_campaign.proto\x12\x02pb\"\xd5\x01\n" +
+	"\bCampaign\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1d\n" +
 	"\n" +
-	"start_time\x18\x04 \x01(\tR\tstartTime\x12\x19\n" +
-	"\bend_time\x18\x05 \x01(\tR\aendTime\x12\x16\n" +
-	"\x06active\x18\x06 \x01(\bR\x06active\x12\x1a\n" +
-	"\bpriority\x18\a \x01(\x05R\bpriority\x12%\n" +
-	"\x0econdition_json\x18\b \x01(\tR\rconditionJson\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\"A\n" +
+	"start_time\x18\x03 \x01(\tR\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x04 \x01(\tR\aendTime\x12\x16\n" +
+	"\x06active\x18\x05 \x01(\bR\x06active\x12\x1a\n" +
+	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12%\n" +
+	"\x0econdition_json\x18\a \x01(\tR\rconditionJson\"A\n" +
 	"\x15CreateCampaignRequest\x12(\n" +
-	"\bcampaign\x18\x01 \x01(\v2\f.pb.CampaignR\bcampaign\"J\n" +
+	"\bcampaign\x18\x01 \x03(\v2\f.pb.CampaignR\bcampaign\"J\n" +
 	"\x16CreateCampaignResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessageB+Z)pratikshakuldeep456/grpc-server/gen/pb;pbb\x06proto3"
