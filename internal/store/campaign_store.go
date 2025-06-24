@@ -2,109 +2,119 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"pratikshakuldeep456/grpc-server/internal/model"
+	"go.uber.org/zap"
+
+	"pratikshakuldeep456/campaign-manager/internal/model"
 )
 
-type CampaignStore struct{}
-
-func NewCampaignStore() *CampaignStore {
-	return &CampaignStore{}
+type CampaignStore struct {
+	Store
+	logger *zap.Logger
 }
 
-func (s *CampaignStore) GetByID(ctx context.Context, id string) (*model.Campaign, error) {
-	row := DB.QueryRow(ctx, `
-		SELECT id, name, description, start_time, end_time, active, priority, condition_json,
-		       created_at, updated_at
-		FROM campaigns WHERE id = $1
-	`, id)
-
-	var c model.Campaign
-	err := row.Scan(
-		&c.ID, &c.Name, &c.Description, &c.StartTime, &c.EndTime, &c.Active,
-		&c.Priority, &c.ConditionJSON, &c.CreatedAt, &c.UpdatedAt,
-	)
-
-	if err != nil {
-		return nil, err
+func NewCampaignStore(store Store, logger *zap.Logger) *CampaignStore {
+	if logger == nil {
+		logger = zap.NewNop()
 	}
-	return &c, nil
+	return &CampaignStore{
+		Store:  store,
+		logger: logger,
+	}
 }
-func (s *CampaignStore) ListActiveCampaigns(ctx context.Context, ts time.Time) ([]*model.Campaign, error) {
-	rows, err := DB.Query(ctx, `
-		SELECT id, name, description, start_time, end_time, priority, condition_json, created_at, updated_at
-		FROM campaigns
-		WHERE active = true AND start_time <= $1 AND end_time >= $1
-	`, ts)
+
+const getActiveCampaignsSQL = `
+SELECT
+    c.id AS campaign_id,
+    c.name AS campaign_name,
+    c.active AS campaign_active,
+    c.priority AS campaign_priority,
+    c.modification_type AS modification_type,
+    c.modification_value AS modification_value,
+
+    tr.id AS rule_id,
+    tr.name AS rule_name,
+    tr.target_all_skus,
+    tr.target_skus,
+    tr.rule_expression
+FROM
+    campaigns c
+JOIN
+    targeting_rules tr ON c.targeting_rule_id = tr.id
+WHERE
+    c.active = TRUE
+    AND $3::date >= c.start_date
+    AND $3::date <= c.end_date
+    
+    AND (
+        (c.start_time < c.end_time AND $4::time BETWEEN c.start_time AND c.end_time)
+        OR
+        (c.start_time > c.end_time AND ($4::time >= c.start_time OR $4::time <= c.end_time))
+    )
+
+    AND (tr.target_all_stores = TRUE OR tr.target_stores IS NULL OR tr.target_stores = '{}' OR tr.target_stores && ARRAY[$1]) -- $1 = storeID
+
+    AND (tr.target_all_users = TRUE OR tr.target_user_groups IS NULL OR tr.target_user_groups = '{}' OR tr.target_user_groups && $2) -- $2 = userGroups
+
+ORDER BY
+    c.priority ASC;
+`
+
+func (s *CampaignStore) GetActiveCampaignsForContext(ctx context.Context, storeID string, userGroups []string, currentTime time.Time) ([]*model.Campaign, error) {
+	l := s.logger.With(
+		zap.String("storeID", storeID),
+		zap.Strings("userGroups", userGroups),
+		zap.Time("timestamp", currentTime),
+	)
+	l.Debug("Executing GetActiveCampaignsForContext query")
+
+	startTime := time.Now()
+
+	formatedCurrentDate := currentTime.Format("2006-01-02")
+	formatedCurrentTime := currentTime.Format("15:04:05")
+
+	l.Debug("Current date and time", zap.String("date", formatedCurrentDate), zap.String("time", formatedCurrentTime))
+
+	rows, err := s.DB().Query(ctx, getActiveCampaignsSQL, storeID, userGroups, formatedCurrentDate, formatedCurrentTime)
 	if err != nil {
-		return nil, err
+		l.Error("Database query failed", zap.Error(err))
+		return nil, fmt.Errorf("database query error: %w", err)
 	}
 	defer rows.Close()
 
-	var results []*model.Campaign
+	endtime := time.Since(startTime)
+	l.Info("fetch query time", zap.Duration("duration", endtime))
+
+	campaigns := []*model.Campaign{}
 	for rows.Next() {
 		var c model.Campaign
-		err := rows.Scan(&c.ID, &c.Name, &c.Description, &c.StartTime, &c.EndTime,
-			&c.Priority, &c.ConditionJSON, &c.CreatedAt, &c.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, &c)
-	}
+		var tr model.TargetingRule
 
-	return results, nil
-}
+		err := rows.Scan(
+			&c.ID, &c.Name,
+			&c.Active, &c.Priority,
+			&c.ModificationType, &c.ModificationValue,
 
-func (s *CampaignStore) Create(ctx context.Context, c *model.Campaign) error {
-	data, err := DB.Exec(ctx, `
-		INSERT INTO campaigns (id, name, description, start_time, end_time, active, priority, condition_json)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`, c.ID, c.Name, c.Description, c.StartTime, c.EndTime, c.Active,
-		c.Priority, c.ConditionJSON)
-	print(data.RowsAffected())
-	return err
-}
-func (s *CampaignStore) BulkCreate(ctx context.Context, campaigns []*model.Campaign) ([]string, error) {
-	var ids []string
-
-	for _, c := range campaigns {
-		query := `
-			INSERT INTO campaigns 
-			(id, name, description, start_time, end_time, active, priority, condition_json)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		`
-
-		_, err := DB.Exec(ctx, query,
-			c.ID, c.Name, c.Description, c.StartTime, c.EndTime,
-			c.Active, c.Priority, c.ConditionJSON,
+			&tr.ID, &tr.Name,
+			&tr.TargetAllSkus, &tr.TargetSkus,
+			&tr.RuleExpression,
 		)
 		if err != nil {
-			return nil, err
+			l.Error("Failed to scan row", zap.Error(err))
+			return nil, fmt.Errorf("database scan error: %w", err)
 		}
 
-		ids = append(ids, c.ID)
+		c.TargetingRule = &tr
+		campaigns = append(campaigns, &c)
 	}
 
-	return ids, nil
-}
+	if err := rows.Err(); err != nil {
+		l.Error("Error iterating query results", zap.Error(err))
+		return nil, fmt.Errorf("database iteration error: %w", err)
+	}
 
-func (s *CampaignStore) Update(ctx context.Context, c *model.Campaign) error {
-	_, err := DB.Exec(ctx, `
-		UPDATE campaigns
-		SET name = $1, description = $2, start_time = $3, end_time = $4,
-		    active = $5, priority = $6, condition_json = $7,
-		    updated_at = NOW()
-		WHERE id = $8
-	`, c.Name, c.Description, c.StartTime, c.EndTime, c.Active,
-		c.Priority, c.ConditionJSON, c.ID)
-
-	return err
-}
-
-func (s *CampaignStore) Delete(ctx context.Context, id string) error {
-	_, err := DB.Exec(ctx, `
-		DELETE FROM campaigns WHERE id = $1
-	`, id)
-	return err
+	l.Debug("Successfully fetched active campaigns", zap.Int("count", len(campaigns)))
+	return campaigns, nil
 }
